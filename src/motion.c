@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     return 0;
   }
   
-  printf("Door\n");
+  printf("Motion\n");
   
   Output = fopen(argv[3],"w");  
   
@@ -577,7 +577,7 @@ void selection1(char* fname)
 
     if((message_size = read(newsockfd[i],message,256))<0)
     {
-      perror("Received Message Failed");
+      perror("read");
       //return 0;
     }
 
@@ -652,6 +652,7 @@ void selection1(char* fname)
           exit(0);
         }
 
+        printf("Received from %d: %s\n", newsockfd[ind], buffer );
         
         pthread_mutex_lock(&mutex);
         updateVectors(buffer);
@@ -672,6 +673,7 @@ void selection1(char* fname)
           exit(0);
         }
 
+        printf("Received from %d: %s\n", newsockfd[0], buffer);
         pthread_mutex_lock(&mutex);
         updateVectors(buffer);
         pthread_mutex_unlock(&mutex);
@@ -688,6 +690,7 @@ void selection1(char* fname)
           exit(0);
         }
 
+        printf("Received from %d: %s\n", newsockfd[1], buffer );
         
         pthread_mutex_lock(&mutex);
         updateVectors(buffer);
@@ -882,7 +885,7 @@ void registerDevice(int clnt, char* fname)
 
   if(send(clnt,msg,strlen(msg),0)<0)
   {
-    perror("send");
+    perror("Message Sent Failed");
   }
   for(i=0;i<3;i++)
   {
@@ -890,7 +893,7 @@ void registerDevice(int clnt, char* fname)
     
     if((message_size = read(clnt,msg,256))<0)
     {
-      perror("read");
+      perror("Received Message Failed");
     }
 
     sscanf(msg,"%[^-]-%[^-]-%s",temp_type,temp_IP,temp_Port);

@@ -14,16 +14,16 @@
 
 struct 
 {
-  int sockid;
-  int interval;
+	int sockid;
+	int interval;
 }CurrInterval[20];
 
 struct sensor_device
 {
-  char IP[16];
+	char IP[16];
   char Port[7];
   char type[20];
-  int sockid;
+	int sockid;
 };
 
 int caller = 0;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     return 0;
   }
   
-  printf("Door\n");
+  printf("Keychain \n");
   
   Output = fopen(argv[3],"w");  
   
@@ -135,19 +135,19 @@ void DeviceRegister(int clnt)
 
 void InitConfiguration(char *filename)
 {
-  FILE *cfg;
-  cfg = fopen(filename,"r");
-  if(!cfg)
-  {
-    printf("Configuration File not found\n");
-    exit(1);
-  }
-  
+	FILE *cfg;
+	cfg = fopen(filename,"r");
+	if(!cfg)
+	{
+		printf("Configuration File not found\n");
+		exit(1);
+	}
+	
   fscanf(cfg,"%[^:]:%s\nsensor:%[^:]:%[^:]:%s\n%[^:]:%s",GIP,GPort,SensIP,SensPort,SensArea,GatewayIP,GatewayPort);
 
   if(!strcmp(SensArea,"Door"))
     caller = 1;
-  else if(!strcmp(SensArea,"Motion"))
+  else if(!strcmp(SensArea,"MotionDetector"))
     caller = 2;
   else if(!strcmp(SensArea,"KeyChain"))
     caller = 3;
@@ -187,7 +187,7 @@ void updateVectors(char *buffer)
 
 void selection3(char *fname)
 {
-  int newsockfd[2], portno, n;
+	int newsockfd[2], portno, n;
   int i;
    struct sockaddr_in serv_addr;
    struct hostent *server;
@@ -223,7 +223,7 @@ void selection3(char *fname)
      write(newsockfd[i], SensArea, sizeof(SensArea));
      ConnectionList[i].sockid = newsockfd[i];  
    }
-  
+	
     
 
   //printf("Thread creation\n");
@@ -317,7 +317,7 @@ void selection3(char *fname)
 
 void selection2(char *fname)
 {
-  int master_sockfd, newsockfd[2], portno, clilen;
+	int master_sockfd, newsockfd[2], portno, clilen;
    char buffer[256];
    struct sockaddr_in serv_addr, cli_addr;
    int  n,i, temp_index;
@@ -355,36 +355,44 @@ void selection2(char *fname)
    
    /* Accept actual connection from the client */
    newsockfd[0] = accept(master_sockfd, (struct sockaddr *)&cli_addr, &clilen);
- 
+   //newsockfd1 = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+	
+  //printf("After accept\n");
+  
+  /*
+   read call to get the information about the device which is going to sent the information
+   */
+
    bzero(message,256);
 
    //printf("Waiting for read\n");
-  if((message_size = read(newsockfd[0],message,256))<0)
-  {
-    perror("Received Message Failed");
-    exit(1);
-  }
-  
-  for(i=0; i< 2; i++)
-  {
+	if((message_size = read(newsockfd[0],message,256))<0)
+	{
+		perror("Received Message Failed");
+		exit(1);
+	}
+	printf("Read: -- %s\n", message  );
+	
+	for(i=0; i< 2; i++)
+	{
     //printf("Before comparison\n");
-    if(strcmp(message,ConnectionList[i].type) == 0)
-    {
-      ConnectionList[i].sockid = newsockfd[0];
-      break;
-    }
-  }
+		if(strcmp(message,ConnectionList[i].type) == 0)
+		{
+			ConnectionList[i].sockid = newsockfd[0];
+			break;
+		}
+	}
   /* Create a socket point */
    newsockfd[1] = socket(AF_INET, SOCK_STREAM, 0);
    
    if(i == 0)
-    temp_index = 1;
+   	temp_index = 1;
    else
-    temp_index = 0;
+   	temp_index = 0;
 
    //printf("temp_index: %d\n", temp_index );
 
-  ConnectionList[temp_index].sockid = newsockfd[1];
+	ConnectionList[temp_index].sockid = newsockfd[1];
 
     
 
@@ -596,10 +604,10 @@ void selection1(char* fname)
     {
       if(strcmp(ConnectionList[j].type,message) == 0)
       {
-        //printf("Both are same : %s\n", ConnectionList[j].type );
-        ConnectionList[j].sockid  = newsockfd[i];
+      	//printf("Both are same : %s\n", ConnectionList[j].type );
+      	ConnectionList[j].sockid  = newsockfd[i];
 
-        break;
+      	break;
       }
     }
 
@@ -652,6 +660,7 @@ void selection1(char* fname)
           exit(0);
         }
 
+        printf("Received from %d: %s\n", newsockfd[ind], buffer );
         
         pthread_mutex_lock(&mutex);
         updateVectors(buffer);
@@ -672,6 +681,7 @@ void selection1(char* fname)
           exit(0);
         }
 
+        printf("Received from %d: %s\n", newsockfd[0], buffer);
         pthread_mutex_lock(&mutex);
         updateVectors(buffer);
         pthread_mutex_unlock(&mutex);
@@ -688,6 +698,7 @@ void selection1(char* fname)
           exit(0);
         }
 
+        printf("Received from %d: %s\n", newsockfd[1], buffer );
         
         pthread_mutex_lock(&mutex);
         updateVectors(buffer);
@@ -700,53 +711,53 @@ void selection1(char* fname)
 
 void* InitParams(void *filename)
 {
-  FILE *file;
+	FILE *file;
   char msg[100];
-  int start_time; 
-  char val[20];
-  int current_time = 0, end_time = -1;  //to set 0 to check initial condition
-  char temp_str[20];
-  int tmp_time = 1, i;
-  char *fname = (char *) filename;
+	int start_time;	
+	char val[20];
+  int current_time = 0, end_time = -1;	//to set 0 to check initial condition
+	char temp_str[20];
+	int tmp_time = 1, i;
+	char *fname = (char *) filename;
   bool flag_remain = false;
   bool door_file_end = false;
 
   //printf("outFile: %s\n", outFile);
 
-  file = fopen(fname,"r");  
+  file = fopen(fname,"r");	
 
   if(!file)
-  {
-    printf("Sensor Input not found\n");
-    exit(1);
-  }   
+	{
+		printf("Sensor Input not found\n");
+		exit(1);
+	}		
 
   while(true)
-  { 
+	{	
     if(!strcmp(SensArea, "Door"))
     {
       my_index = 0;
-      fscanf(file,"%d,%s\n",&end_time,val);
+  		fscanf(file,"%d,%s\n",&end_time,val);
 
-      sleep(end_time-current_time);
+  		sleep(end_time-current_time);
 
       if(feof(file))
-      {
+  		{
         //printf("End  of File\n");
         door_file_end = true;
         current_time = 0;
-        fseek(file, 0, SEEK_SET);
-      }
+				fseek(file, 0, SEEK_SET);
+  		}
       else
       {
         current_time = end_time;
       }
     }
-    else 
+		else 
     {
-      if(!strcmp(SensArea, "Motion"))
+      if(!strcmp(SensArea, "MotionDetector"))
       {
-        //printf("Motion\n");
+        //printf("MotionDetector\n");
         my_index = 1;
       }
       else
@@ -782,11 +793,11 @@ void* InitParams(void *filename)
     sprintf(msg, "Type:currValue;Device:%s;Time:%d;Value:%s;SensIP:%s;SensPort:%s#%d:%d:%d",SensArea,(int)time(NULL),val,SensIP,SensPort,vc[0],vc[1],vc[2]);
     
     printf("Type:currValue;Device:%s;Time:%d;Value:%s;SensIP:%s;SensPort:%s;Vector:[%d,%d,%d,0]\n",SensArea,(int)time(NULL),val,SensIP,SensPort,vc[0],vc[1],vc[2]);
-    
+		
     if(send(clnt,msg,strlen(msg),0) < 0)
-    {
-      perror("Message Sent Failed");
-    }
+		{
+			perror("Message Sent Failed");
+		}
     //Msg sent to other devices
     bzero(msg,100);
     sprintf(msg, "Type:currValue;Device:%s;Value:%s#%d:%d:%d",SensArea,val,vc[0],vc[1],vc[2]);
@@ -833,81 +844,81 @@ void* InitParams(void *filename)
         door_file_end = false;
       }
     }
-  }
+	}
 }
 
 int MakeConnection()
 {
-  struct sockaddr_in sock;
-  int clnt; //Client FD
-  clnt = socket(AF_INET,SOCK_STREAM,0);
-  if(clnt < 0)  //Socket Connetion Failed
-  {
-    perror("Socket Create Failed");
-    exit(0);
-  }
-  
-  sock.sin_family = AF_INET;
-  sock.sin_addr.s_addr = inet_addr(GIP);
-  sock.sin_port = htons(atoi(GPort));
-  
-  if(connect(clnt, (struct sockaddr*)&sock, sizeof(sock)) < 0)
-  { 
-    perror("Connetion Failed");
-    close(clnt);
-    exit(-1);
-  }
-  
-  return clnt;
+	struct sockaddr_in sock;
+	int clnt;	//Client FD
+	clnt = socket(AF_INET,SOCK_STREAM,0);
+	if(clnt < 0)	//Socket Connetion Failed
+	{
+		perror("Socket Create Failed");
+		exit(0);
+	}
+	
+	sock.sin_family = AF_INET;
+	sock.sin_addr.s_addr = inet_addr(GIP);
+	sock.sin_port = htons(atoi(GPort));
+	
+	if(connect(clnt, (struct sockaddr*)&sock, sizeof(sock)) < 0)
+	{	
+		perror("Connetion Failed");
+		close(clnt);
+		exit(-1);
+	}
+	
+	return clnt;
 }
 
 void registerDevice(int clnt, char* fname)
 {
 
-  char msg[256];
-  int i;
-  char temp_IP[20];
-  char temp_Port[7];
-  char temp_type[20];
-  int message_size;
+	char msg[256];
+	int i;
+	char temp_IP[20];
+	char temp_Port[7];
+	char temp_type[20];
+	int message_size;
 
-  CurrInterval[SensorCount].sockid = clnt;
-  CurrInterval[SensorCount].interval = 5;
+	CurrInterval[SensorCount].sockid = clnt;
+	CurrInterval[SensorCount].interval = 5;
 
-  SensorCount += 1;
+	SensorCount += 1;
 
-  sprintf(msg,"Type:register;Action:%s-%s-%s",SensIP,SensPort,SensArea);
+	sprintf(msg,"Type:register;Action:%s-%s-%s",SensIP,SensPort,SensArea);
 
   printf("%s\n",msg );
 
-  if(send(clnt,msg,strlen(msg),0)<0)
-  {
-    perror("send");
-  }
+	if(send(clnt,msg,strlen(msg),0)<0)
+	{
+		perror("Message Sent Failed");
+	}
   for(i=0;i<3;i++)
-  {
-    bzero(msg,256);
-    
-    if((message_size = read(clnt,msg,256))<0)
-    {
-      perror("read");
-    }
+	{
+		bzero(msg,256);
+		
+		if((message_size = read(clnt,msg,256))<0)
+		{
+			perror("Received Message Failed");
+		}
 
-    sscanf(msg,"%[^-]-%[^-]-%s",temp_type,temp_IP,temp_Port);
-    if(strcmp(SensPort,temp_Port) == 0 && strcmp(SensIP,temp_IP) == 0)
-    {
-      continue;
-    }
-    strcpy(ConnectionList[ConnectionCount].type,temp_type);
-    strcpy(ConnectionList[ConnectionCount].IP,temp_IP);
-    strcpy(ConnectionList[ConnectionCount].Port,temp_Port);
+		sscanf(msg,"%[^-]-%[^-]-%s",temp_type,temp_IP,temp_Port);
+		if(strcmp(SensPort,temp_Port) == 0 && strcmp(SensIP,temp_IP) == 0)
+		{
+	    continue;
+		}
+		strcpy(ConnectionList[ConnectionCount].type,temp_type);
+		strcpy(ConnectionList[ConnectionCount].IP,temp_IP);
+		strcpy(ConnectionList[ConnectionCount].Port,temp_Port);
     ConnectionCount++;
-  }
+	}
 
    
 
   if(caller == 1)
-   selection1(fname);
+	 selection1(fname);
   else if(caller == 2)
     selection2(fname);
   else
