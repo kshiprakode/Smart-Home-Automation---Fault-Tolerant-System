@@ -1,0 +1,19 @@
+Compiling the files -
+gcc database.c -o ../output/database -lpthread
+gcc gateway.c -o ../output/gateway -lpthread
+gcc gateway.c -o ../output/gateway -lpthread
+gcc security.c -o ../output/security -lpthread
+gcc door.c -o ../output/door -lpthread
+gcc motion.c -o ../output/motion -lpthread
+gcc keychain.c -o ../output/keychain -lpthread
+
+Running the files - 
+./output/database PrimaryBackendOutput.log 6000
+./output/database SecondaryBackendOutput.log 6001
+./output/gateway ./ConfigFiles/Gateway_Config_P.txt PrimaryGatewayOutput.log 127.0.0.1 6000
+./output/gateway ./ConfigFiles/Gateway_Config_S.txt SecondaryGatewayOutput.log 127.0.0.1 6001
+./output/security ./ConfigFiles/SecurityConfig.txt SecurityDeviceOutput.log
+./output/door ./ConfigFiles/DoorConfig.txt InputFiles/DoorInput.txt DoorOutput.log
+./output/motion ./ConfigFiles/MotionConfig.txt InputFiles/MotionInput.txt MotionOutput.log
+./output/keychain ./ConfigFiles/KeychainConfig.txt InputFiles/KeychainInput.txt KeychainOutput.log
+
